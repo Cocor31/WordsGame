@@ -2,7 +2,7 @@ game-db
 maria-game-db
 mongo-game-db
 local_bdd
-.env
+/.env
 
 # Logs
 logs
