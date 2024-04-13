@@ -1,0 +1,106 @@
+version: '3'
+
+# networks:
+#   testNetwork:
+
+networks:
+  first-network:
+    driver: bridge
+  second-network:
+    driver: bridge
+
+services:
+
+  bdd:
+    image: mariadb:latest
+    container_name: bdd
+    restart: always
+    volumes:
+      - game-db:/var/lib/mysql
+    ports:
+      - 3306:3306
+    environment:
+      MARIADB_DATABASE: db_words_game
+      MARIADB_ROOT_PASSWORD: toor
+      MARIADB_USER: roger
+      MARIADB_PASSWORD: regor
+    networks:
+      - first-network
+
+  service_api:
+    image: game-api
+    container_name: service_api
+    extra_hosts:
+      # for linux hosts since version 20.10
+      - host.docker.internal:host-gateway
+    restart: always
+    # env_file:
+    #   - ./api/.env
+    environment:
+      MARIADB_HOST: bdd
+      MARIADB_DATABASE: db_words_game
+      MARIADB_ROOT_PASSWORD: toor
+      MARIADB_USER: roger
+      MARIADB_PASSWORD: regor
+
+    # expose:
+    #   - "5000"
+    ports:
+      - 5000:5000
+    links:
+      - bdd
+    networks:
+      # - testNetwork
+      - first-network
+
+  service_gamemanager:
+    image: game-manager
+    container_name: service_gamemanager
+    restart: always
+    environment:
+      - FRONT_URL=localhost
+      - FRONT_PORT=80
+      - API_URL= service_api
+      - API_PORT= 5000
+    ports:
+      - 5001:5001
+    # expose:
+    #   - 5001
+    networks:
+      # - testNetwork
+      - first-network
+
+  # front:
+  #   build: ./front
+  #   container_name: front
+  #   environment:
+  #     - VITE_SERVER_URL=host.docker.internal
+  #     - VITE_GAMEMANAGER_PORT=5001
+  #     - VITE_API_PORT=5000
+  #   ports:
+  #     - 5173:5173
+  #   links:
+  #     - gamemanager
+  #     - api2
+  #   networks:
+  #     # - testNetwork
+  #     - second-network
+
+  nginx:
+    image: nginx
+    volumes:
+      - ./front/nginx:/etc/nginx/conf.d
+      - ./front/dist:/var/www/front-end
+    ports:
+      - "80:80"
+    depends_on:
+      service_api:
+        condition: service_started
+    networks:
+      # - testNetwork
+      - second-network
+
+volumes:
+  game-db:
+
+

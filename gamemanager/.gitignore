@@ -1,0 +1,7 @@
+node_modules
+# .env
+mysql
+local_bdd
+.scannerwork
+scripts/opt
+coverage/

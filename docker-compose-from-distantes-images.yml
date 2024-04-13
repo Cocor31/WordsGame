@@ -1,0 +1,82 @@
+version: '3'
+
+# networks:
+#   testNetwork:
+
+networks:
+  first-network:
+    driver: bridge
+  second-network:
+    driver: bridge
+
+services:
+
+  bdd:
+    image: mariadb:latest
+    container_name: bdd
+    restart: always
+    volumes:
+      - game-db:/var/lib/mysql
+    ports:
+      - 3306:3306
+    environment:
+      MARIADB_DATABASE: db_words_game
+      MARIADB_ROOT_PASSWORD: toor
+      MARIADB_USER: roger
+      MARIADB_PASSWORD: regor
+    networks:
+      - first-network
+
+  service_api:
+    image: cocor31/game-api:main
+    container_name: service_api
+    restart: always
+
+    environment:
+      MARIADB_HOST: bdd
+      MARIADB_DATABASE: db_words_game
+      MARIADB_ROOT_PASSWORD: toor
+      MARIADB_USER: roger
+      MARIADB_PASSWORD: regor
+
+    # expose:
+    #   - "5000"
+    ports:
+      - 5000:5000
+    links:
+      - bdd
+    networks:
+      # - testNetwork
+      - first-network
+
+  service_gamemanager:
+    image: cocor31/game-manager:main
+    container_name: service_gamemanager
+    restart: always
+    environment:
+      - FRONT_URL=localhost
+      - FRONT_PORT=80
+    ports:
+      - 5001:5001
+    # expose:
+    #   - 5001
+    networks:
+      # - testNetwork
+      - first-network
+
+  service_front:
+    image: cocor31/game-front:main
+    container_name: service_front
+    restart: always
+    ports:
+      - 80:80
+    depends_on:
+      service_api:
+        condition: service_started
+    networks:
+      - first-network
+
+volumes:
+  game-db:
+
+

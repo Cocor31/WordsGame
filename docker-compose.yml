@@ -1,0 +1,154 @@
+version: '3'
+
+networks:
+  first-network:
+    driver: bridge
+  second-network:
+    driver: bridge
+
+services:
+
+  bdd:
+    image: mariadb:latest
+    container_name: bdd
+    restart: always
+    volumes:
+      - ./maria-game-db:/var/lib/mysql
+    ports:
+      - 3306:3306
+    environment:
+      MARIADB_DATABASE: db_words_game
+      MARIADB_ROOT_PASSWORD: toor
+      MARIADB_USER: roger
+      MARIADB_PASSWORD: regor
+    networks:
+      - first-network
+
+  adminer:
+    container_name: adminer
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+    networks:
+      - first-network
+
+  # mongo_db:
+  #   image: mongo:latest
+  #   container_name: mongo_db
+  #   restart: always
+  #   volumes:
+  #     - ./mongo-game-db:/data/db
+  #   # env_file: ./.env
+  #   ports:
+  #     - 27017:27017
+  #   environment:
+  #     - MONGO_INITDB_ROOT_USERNAME=admin
+  #     - MONGO_INITDB_ROOT_PASSWORD=nimda
+  #   networks:
+  #     - first-network
+
+  # mongo-express:
+  #   container_name: mongo-express
+  #   image: mongo-express:1.0.0-alpha
+  #   restart: always
+  #   env_file: ./.env
+  #   ports:
+  #     - 8081:8081
+  #   environment:
+  #     ME_CONFIG_MONGODB_ADMINUSERNAME: admin
+  #     ME_CONFIG_MONGODB_ADMINPASSWORD: nimda
+  #     ME_CONFIG_MONGODB_SERVER: mongo_db
+  #     ME_CONFIG_BASICAUTH_USERNAME: roger
+  #     ME_CONFIG_BASICAUTH_PASSWORD: regor
+  #   depends_on:
+  #     - mongo_db
+  #   networks:
+  #     - first-network
+
+  service_api:
+    image: cocor31/game-api:main
+    container_name: service_api
+    extra_hosts:
+      # for linux hosts since version 20.10
+      - host.docker.internal:host-gateway
+    restart: always
+    # env_file:
+    #   - ./api/.env
+    environment:
+      MARIADB_HOST: bdd
+      MARIADB_DATABASE: db_words_game
+      MARIADB_ROOT_PASSWORD: toor
+      MARIADB_USER: roger
+      MARIADB_PASSWORD: regor
+
+    # expose:
+    #   - "5000"
+    ports:
+      - 5000:5000
+    links:
+      - bdd
+    networks:
+      - first-network
+
+  service_gamemanager:
+    image: cocor31/game-manager:main
+    container_name: service_gamemanager
+    restart: always
+    env_file: ./.env
+    environment:
+      - API_URL=service_api
+      - API_PORT=5000
+      - MONGO_DB_STRING=${MONGO_DB_STRING}
+      # - MONGODB_HOST=mongo_db
+      # - MONGODB_USER = admin
+      # - MONGODB_PASSWORD = nimda
+      # - MONGODB_DATABASE = mongo_game_db
+      # - MONGODB_URL=mongodb://admin:thor@mongo_db:27017/?authSource=admin
+      # q- MONGODB_URL=mongo_db
+      # - MONGODB_URL=mongodb://${MONGO_ROOT_USERNAME}:${MONGO_ROOT_PASSWORD}@mongo-db:27017/?authSource=${MONGO_ROOT_USERNAME}&retryWrites=true&w=majority
+      # - MONGO_URL=mongodb://root:example@mongo-db:27017/game-manager-db
+    ports:
+      - 5001:5001
+    # expose:
+    #   - 5001
+    # depends_on:
+    #   - mongo_db
+    networks:
+      - first-network
+
+  service_front:
+    image: cocor31/game-front:main
+    container_name: service_front
+    restart: always
+    ports:
+      - 80:80
+    depends_on:
+      service_api:
+        condition: service_started
+    networks:
+      - first-network
+  # service_proxy:
+  #   # image: cocor31/game-proxy:main
+  #   image: mon_reverse_proxy
+  #   container_name: service_proxy
+  #   restart: always
+  #   ports:
+  #     - "80:80"
+  #     # - 5003:80
+  #   depends_on:
+  #     service_front:
+  #       condition: service_started
+  #   networks:
+  #     - first-network
+
+
+  # volumes:
+  #   game-db:
+
+
+
+
+
+
+

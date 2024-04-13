@@ -1,0 +1,149 @@
+name: Deploiement continu sur Server
+
+on:
+    workflow_call
+
+jobs:
+    buildAndPushFront:      
+      runs-on: ubuntu-latest
+      steps:
+        - name: Checkout
+          uses: actions/checkout@v4
+
+        - name: Substitute Environment Variables in .env for Front
+          run: |
+            SERVER_URL=${{ secrets.HOST }}
+            SOCKET_PORT=80
+            sed -i "s/VITE_SERVER_URL=.*/VITE_SERVER_URL=${SERVER_URL}/" front/.env
+            sed -i "s/VITE_SOCKET_PORT=.*/VITE_SOCKET_PORT=${SOCKET_PORT}/" front/.env
+
+        - name: Docker login
+          uses: docker/login-action@v3
+          with:
+            username: ${{ secrets.DOCKERHUB_LOGIN }}
+            password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+        # - name: Extract Metada
+        #   id: meta
+        #   uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
+        #   with:
+        #     images: cocor31/game-front
+
+        - name: Build and Push
+          uses: docker/build-push-action@v5
+          with:
+            context: ./front
+            file: ./front/Dockerfile
+            push: true
+            tags: cocor31/game-front:main
+            # tags: ${{ steps.meta.outputs.tags }}
+            # labels: ${{ steps.meta.outputs.label }}
+    buildAndPushAPI:
+      runs-on: ubuntu-latest
+      steps:
+        - name: Checkout
+          uses: actions/checkout@v4
+
+        - name: Docker login
+          uses: docker/login-action@v3
+          with:
+            username: ${{ secrets.DOCKERHUB_LOGIN }}
+            password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+        - name: Build and Push API
+          uses: docker/build-push-action@v5
+          with:
+            context: ./api
+            file: ./api/Dockerfile
+            push: true
+            tags: cocor31/game-api:main
+
+    buildAndPushManager:
+      runs-on: ubuntu-latest
+      steps:
+        - name: Checkout
+          uses: actions/checkout@v4
+
+        - name: Substitute Environment Variables in .env for Gamemanager
+          run: |
+            FRONT_URL=${{ secrets.HOST }}
+            FRONT_PORT=80
+            sed -i "s/FRONT_URL=.*/FRONT_URL=${FRONT_URL}/" ./gamemanager/.env
+            sed -i "s/FRONT_PORT=.*/FRONT_PORT=${FRONT_PORT}/" ./gamemanager/.env
+
+        - name: Docker login
+          uses: docker/login-action@v3
+          with:
+            username: ${{ secrets.DOCKERHUB_LOGIN }}
+            password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+        - name: Build and Push Manager
+          uses: docker/build-push-action@v5
+          with:
+            context: ./gamemanager
+            file: ./gamemanager/Dockerfile
+            push: true
+            tags: cocor31/game-manager:main
+
+    # buildAndPushProxy:
+    #   runs-on: ubuntu-latest
+    #   steps:
+    #     - name: Checkout
+    #       uses: actions/checkout@v4
+
+    #     - name: Docker login
+    #       uses: docker/login-action@v3
+    #       with:
+    #         username: ${{ secrets.DOCKERHUB_LOGIN }}
+    #         password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    #     - name: Build and Push API
+    #       uses: docker/build-push-action@v5
+    #       with:
+    #         context: ./api
+    #         file: ./proxy/Dockerfile
+    #         push: true
+    #         tags: cocor31/game-proxy:main
+
+    sendFilesToServer:
+        if: ${{ !contains(github.event.head_commit.message, '#NoDeploy')}}
+        needs: [buildAndPushFront, buildAndPushAPI, buildAndPushManager]
+        runs-on: ubuntu-latest
+    
+        steps:
+          - name: Checkout code
+            uses: actions/checkout@v4
+
+          - name: copy via ssh key
+            uses: appleboy/scp-action@v0.1.4
+            with:
+              host: ${{ secrets.HOST }}
+              username: ${{ secrets.USERNAME }}
+              port: ${{ secrets.PORT }}
+              key: ${{ secrets.SSH_KEY }}
+              source: "./docker-compose.yml"
+              target: "."  
+
+    pullServer:
+      if: ${{ !contains(github.event.head_commit.message, '#NoDeploy')}}
+      needs: [sendFilesToServer]
+      runs-on: ubuntu-latest
+      
+      steps:
+        - name: Checkout
+          uses: actions/checkout@v4      
+        - name: Server update
+          uses: appleboy/ssh-action@master
+          with:
+            host: ${{ secrets.HOST }}
+            username: ${{ secrets.USERNAME }}
+            port: ${{ secrets.PORT }}
+            key: ${{ secrets.SSH_KEY }}
+
+            script: |
+              docker pull cocor31/game-manager:main
+              docker pull cocor31/game-api:main
+              docker pull cocor31/game-front:main
+              docker-compose up -d
+              docker image prune -f --filter "dangling=true"
+              

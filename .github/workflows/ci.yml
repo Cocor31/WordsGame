@@ -1,0 +1,56 @@
+name: Integration continue
+
+on:
+    push:
+        branches: 
+            - main
+            - gamebdd
+    pull_request:
+        branches: ["main"]
+
+jobs:
+    test:
+        runs-on: ubuntu-latest
+
+        services:
+            mariadb:
+                image: mariadb:latest
+                env:
+                    MARIADB_ROOT_PASSWORD: toor
+                    MARIADB_DATABASE: test
+                    MARIADB_USER: test
+                    MARIADB_PASSWORD: test
+                ports:
+                    - 3306:3306
+                options: --health-cmd="healthcheck.sh --connect --innodb_initialized" --health-interval=10s --health-timeout=5s --health-retries=3
+
+        env:
+            DB_HOST: 127.0.0.1
+            DB_NAME: test
+            DB_USER: test
+            DB_PASS: test
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Check database connection
+              run: |
+                sudo apt-get install -y mysql-client
+                mysql --host 127.0.0.1 --port 3306 -u root -ptoor -e "SHOW DATABASES"
+
+            - name: Setup node
+              uses: actions/setup-node@v4
+              with:
+                node-version: 18.x
+
+            - name: Init database
+              run: echo Test Done
+              
+    
+    deploy:
+        needs: [test]
+        if: ${{ github.event_name == 'push' && (github.ref_name == 'main' || github.ref_name == 'gamebdd') }}      
+        uses: ./.github/workflows/cd.yml
+        secrets: inherit
+        

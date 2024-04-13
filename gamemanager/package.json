@@ -1,0 +1,31 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "start": "node -r dotenv/config server.js",
+    "dev": "nodemon --exec \"npm run kill-process && node -r dotenv/config server.js\"",
+    "dev-old": "npm run kill-process && nodemon -r dotenv/config server.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "db:dev:rm": "docker compose rm -s -f -v",
+    "db:dev:up": "docker compose up -d",
+    "db:dev:restart": "npm run db:dev:rm && npm run db:dev:up",
+    "db:start": "docker compose -f docker-compose-bdd.yml up -d",
+    "db:stop": "docker-compose -f docker-compose-bdd.yml down",
+    "show-port": "echo $(grep '^SERVER_PORT=' .env | cut -d '=' -f 2)",
+    "kill-process": "PORT=$(grep SERVER_PORT .env | cut -d '=' -f2) && PID=$(netstat -peanut | grep $PORT | awk '{print $9}' | cut -d '/' -f1) && filtered_pid=$(echo \"$PID\" | grep -v '-') && echo \"$filtered_pid\" | while read -r pid; do if [ -n \"$pid\" ]; then kill -9 $pid && echo \">>>> process killed $pid running on port: $PORT\"; fi; done; if [ -z \"$filtered_pid\" ]; then echo \">>>> port $PORT available\"; fi"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.6.8",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "mongoose": "^8.3.1",
+    "nodemon": "^3.0.2",
+    "socket.io": "^4.7.3"
+  }
+}

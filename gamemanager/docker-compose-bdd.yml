@@ -1,0 +1,33 @@
+version: "3.7"
+services:
+
+  mongo_db:
+    image: mongo:latest
+    container_name: mongo_db
+    restart: always
+    volumes:
+      - ./local_bdd:/data/db
+    env_file: ./.env
+    ports:
+      - $MONGODB_DOCKER_PORT:$MONGODB_DOCKER_PORT
+    # environment:
+    #   MONGO_INITDB_ROOT_USERNAME: admin
+    #   MONGO_INITDB_ROOT_PASSWORD: thor
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=$MONGODB_USER
+      - MONGO_INITDB_ROOT_PASSWORD=$MONGODB_PASSWORD
+
+  mongo-express:
+    container_name: mongo-express
+    image: mongo-express:1.0.0-alpha
+    restart: always
+    ports:
+      - 8081:8081
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: $MONGODB_USER
+      ME_CONFIG_MONGODB_ADMINPASSWORD: $MONGODB_PASSWORD
+      ME_CONFIG_MONGODB_SERVER: mongo_db
+      ME_CONFIG_BASICAUTH_USERNAME: roger
+      ME_CONFIG_BASICAUTH_PASSWORD: regor
+    depends_on:
+      - mongo_db
