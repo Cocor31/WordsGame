@@ -19,7 +19,7 @@ const UserCard = ({ userName, userScore, photo, initScore }) => {
     }, [userScore, initScore]);
 
     return (
-        <div className="chat__usercard">
+        <div className="chat__usercard" style={{ filter: userScore === 0 ? 'opacity(0.5)' : 'none' }}>
             <div className="chat__usercard__image">
                 <img
                     src={photo ? photo : DEFAULT_PHOTO}
@@ -33,11 +33,9 @@ const UserCard = ({ userName, userScore, photo, initScore }) => {
                         <div className='progress-bar-fill' style={{ width: `${progress}%`, backgroundColor: getColor() }}></div>
                     </div>
                     <div className='progress-label'>{progress}%</div>
-
                 </div>
             </div>
         </div>
-
     );
 };
 
