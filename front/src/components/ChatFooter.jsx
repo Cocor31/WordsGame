@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import ServiceSocket from '../services/ServiceSocket';
 
-const ChatFooter = ({ socket }) => {
+const ChatFooter = ({ socket, footerBloqued }) => {
     const [message, setMessage] = useState('');
 
     const handleSendMessage = (e) => {
@@ -23,14 +23,14 @@ const ChatFooter = ({ socket }) => {
     };
 
     return (
-        <div className="chat__footer">
+        <div className={`chat__footer ${footerBloqued ? 'disabled' : ''}`}>
             <form className="form" onSubmit={handleSendMessage}>
                 <input
                     type="text"
                     placeholder="Write message"
                     className="message"
                     value={message}
-                    onChange={handleTyping}//{(e) => setMessage(e.target.value)}
+                    onChange={handleTyping}
                 // onKeyDown={handleTyping}
                 />
                 <button className="sendBtn">SEND</button>

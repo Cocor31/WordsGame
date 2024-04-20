@@ -265,6 +265,11 @@
     }
 }
 
+.chat__footer.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
 .form {
     width: 100%;
     height: 100%;

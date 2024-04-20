@@ -1,13 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import UserCard from './UserCard';
 
-const ChatBar = ({ socket }) => {
-    const [users, setUsers] = useState([]);
-
-    useEffect(() => {
-        socket.on('newUserResponse', (data) => setUsers(data));
-        socket.on('updateUsersScores', (data) => setUsers(data));
-    }, [socket, users]);
+const ChatBar = ({ users }) => {
 
     return (
         <div className="chat__sidebar">

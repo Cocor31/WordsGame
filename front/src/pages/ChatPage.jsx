@@ -10,6 +10,27 @@ const ChatPage = ({ socket }) => {
     const [messages, setMessages] = useState([]);
     const lastMessageRef = useRef(null);
     const [typingStatus, setTypingStatus] = useState('');
+    const [users, setUsers] = useState([]);
+    const [activeUserId, setActiveUserId] = useState();
+    const [footerBloqued, setFooterBloqued] = useState(false)
+
+    useEffect(() => {
+        setActiveUserId(tokenService.getUserId());
+    }, [activeUserId]);
+
+    useEffect(() => {
+        const activeUser = users.find((user) => user.userId === activeUserId);
+        if (activeUser && activeUser.score === 0) {
+            setFooterBloqued(true);
+        } else {
+            setFooterBloqued(false);
+        }
+    }, [users, activeUserId]);
+
+    useEffect(() => {
+        socket.on('newUserResponse', (data) => setUsers(data));
+        socket.on('updateUsersScores', (data) => setUsers(data));
+    }, [socket, users]);
 
     useEffect(() => {
         socket.on('messageResponse', (data) => setMessages([...messages, data]));
@@ -27,10 +48,10 @@ const ChatPage = ({ socket }) => {
 
     return (
         <div className="chat">
-            <ChatBar socket={socket} />
+            <ChatBar users={users} />
             <div className="chat__main">
                 <ChatBody socket={socket} messages={messages} typingStatus={typingStatus} lastMessageRef={lastMessageRef} />
-                <ChatFooter socket={socket} />
+                <ChatFooter socket={socket} footerBloqued={footerBloqued} />
             </div>
         </div>
     );
