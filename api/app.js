@@ -2,6 +2,7 @@
 /*** IMPORT */
 const express = require('express')
 const cors = require('cors')
+const reqLogger = require('./middlewares/reqLogger');
 
 /*** INIT API */
 const app = express()
