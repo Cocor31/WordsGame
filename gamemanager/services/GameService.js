@@ -67,7 +67,8 @@ const addUserToGroup = (users, data, socketIdUser) => {
         {
             ...data,
             socketID: socketIdUser,
-            score: USERS_INIT_SCORE
+            score: USERS_INIT_SCORE,
+            initScore: USERS_INIT_SCORE
         }
     );
     console.log('user list', logUsers(users));

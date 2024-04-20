@@ -17,7 +17,7 @@ const ChatBar = ({ socket }) => {
                 <h4 className="chat__header">ACTIVE USERS</h4>
                 <ul className="chat__users">
                     {users.map((user) => (
-                        <UserCard key={user.userId} socketID={user.socketID} username={user.userName} users={users} photo={user.userPhoto} />
+                        <UserCard key={user.userId} userName={user.userName} userScore={user.score} photo={user.userPhoto} initScore={user.initScore} />
                     ))}
                 </ul>
             </div>

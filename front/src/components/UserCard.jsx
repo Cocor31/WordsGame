@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { DEFAULT_PHOTO } from '../../constantes/constantes';
 
-const UserCard = ({ socketID, username, users, photo }) => {
+const UserCard = ({ userName, userScore, photo, initScore }) => {
     const [progress, setProgress] = useState(0);
-    const [initScore, setinitScore] = useState(0)
 
     const getColor = () => {
         if (progress < 40) {
@@ -16,14 +15,8 @@ const UserCard = ({ socketID, username, users, photo }) => {
     }
 
     useEffect(() => {
-        const user = users.filter((user) => user.socketID === socketID)[0];
-        setinitScore(user.score)
-    }, [initScore]);
-
-    useEffect(() => {
-        const user = users.filter((user) => user.socketID === socketID)[0];
-        setProgress(Math.round(user.score / initScore * 100))
-    }, [users, socketID, username, initScore]);
+        setProgress(Math.round(userScore / initScore * 100))
+    }, [userScore, initScore]);
 
     return (
         <div className="chat__usercard">
@@ -34,7 +27,7 @@ const UserCard = ({ socketID, username, users, photo }) => {
                 />
             </div>
             <div className="chat__usercard__userdata">
-                <p >{username}</p>
+                <p>{userName}</p>
                 <div className="chat__healthbar">
                     <div className="progress-bar">
                         <div className='progress-bar-fill' style={{ width: `${progress}%`, backgroundColor: getColor() }}></div>
