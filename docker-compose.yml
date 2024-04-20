@@ -14,8 +14,8 @@ services:
     restart: always
     volumes:
       - ./db_volumes/maria-game-db:/var/lib/mysql
-    expose:
-      - "3306"
+    ports:
+      - "3306:3306"
     env_file: ./.env
     environment:
       MARIADB_DATABASE: ${MARIADB_DATABASE}
@@ -49,8 +49,8 @@ services:
       MARIADB_USER: ${MARIADB_USER}
       MARIADB_PASSWORD: ${MARIADB_PASSWORD}
 
-    expose:
-      - "5000"
+    ports:
+      - "5000:5000"
     links:
       - bdd
     networks:
@@ -65,8 +65,8 @@ services:
       - API_URL=service_api
       - API_PORT=5000
       - MONGO_DB_STRING=${MONGO_DB_STRING}
-    expose:
-      - "5001"
+    ports:
+      - "5001:5001"
     networks:
       - first-network
 

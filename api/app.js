@@ -17,6 +17,8 @@ app.use(cors({
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
+// /*** LOG INCOMING REQUESTS */
+app.use(reqLogger);
 
 // /*** IMPORT ROUTER */
 const auth_router = require('./routes/Auth')
