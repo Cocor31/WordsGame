@@ -311,6 +311,7 @@
 
     @media only screen and (max-width : 740px) {
         height: 10%;
+        padding: 5px;
         /* Ajouter cette ligne */
     }
 }
@@ -320,7 +321,7 @@
     align-items: center;
     justify-content: center;
     height: 100%;
-    max-height: 40px;
+    max-height: 80px;
     padding: 0 24px;
     border-radius: 10px;
     border: none;
@@ -367,6 +368,8 @@
 
     @media only screen and (max-width : 740px) {
         height: 10%;
+        min-height: 50px;
+        padding: 5px;
         /* Modifier cette ligne */
     }
 }
