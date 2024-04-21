@@ -204,10 +204,9 @@
 
 .home__header__buttons {
     align-content: center;
-
-    & button {
-        margin-right: 10px;
-    }
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
 
     & button:last-child {
         margin-right: 0;
@@ -231,7 +230,7 @@
     cursor: pointer;
     transition: background-color 0.3s ease;
     box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
-    margin-right: 10px;
+
 
     &:hover {
         background-color: var(--btn-standar-color);
