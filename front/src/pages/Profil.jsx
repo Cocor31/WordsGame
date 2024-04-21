@@ -1,19 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import ServiceAPI from '../services/ServiceAPI';
-import ServiceImage from '../services/ServiceImage';
-import { DEFAULT_PHOTO } from '../../constantes/constantes';
 import tokenService from '../services/TokenService';
+import PhotoContainer from '../components/PhotoContainer';
 
 const Profil = () => {
-    const navigate = useNavigate()
+    const navigate = useNavigate();
 
     // State pour stocker les valeurs des champs du formulaire
     const [formData, setFormData] = useState({
         pseudo: '',
         email: '',
         password: '',
-        photo: '',
+        photo: null,
     });
 
     useEffect(() => {
@@ -24,7 +23,7 @@ const Profil = () => {
                     pseudo: userData.pseudo,
                     email: userData.email,
                     password: '',
-                    photo: userData.photo ? userData.photo : DEFAULT_PHOTO
+                    photo: userData.photo
                 });
             } catch (error) {
                 console.error(error);
@@ -33,8 +32,6 @@ const Profil = () => {
 
         fetchUserData();
     }, []);
-
-
 
     // Fonction pour gérer les changements dans les champs du formulaire
     const handleChange = (e) => {
@@ -45,19 +42,6 @@ const Profil = () => {
         });
     };
 
-    // Fonction pour gérer le changement de l'image
-    const handleImageChange = async (e) => {
-        const file = e.target.files[0];
-        const encodedfile = await ServiceImage.loadFile(file)
-
-        if (encodedfile) {
-            setFormData({
-                ...formData,
-                photo: encodedfile
-            });
-        }
-    }
-
     // Fonction pour gérer la soumission du formulaire
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -65,11 +49,6 @@ const Profil = () => {
         // Supprimer le champ "password" de formData si il est égal à ""
         if (formData.password === '') {
             delete formData.password;
-        }
-
-        // Supprimer le champ "photo" de formData si il est égal à ""
-        if (formData.photo === '') {
-            delete formData.photo;
         }
 
         try {
@@ -86,11 +65,12 @@ const Profil = () => {
         }
     };
 
+
     return (
         <div className="login__container">
-
             <form className="login__container__form" onSubmit={handleSubmit}>
                 <h2 className="login__header">Your Profil</h2>
+                <PhotoContainer formData={formData} setFormData={setFormData} />
                 <input
                     type="text"
                     id="pseudo"
@@ -119,36 +99,8 @@ const Profil = () => {
                     onChange={handleChange}
                     minLength={6}
                 />
-                <div className="login__input_photo_container">
-                    <p>Photo</p>
-                    <input
-                        type="file"
-                        id="photo"
-                        name="photo"
-                        accept="image/*"
-                        onChange={handleImageChange}
-
-                    />
-
-                    {formData.photo && (
-                        <div className="login__image__div">
-                            <img
-                                src={formData.photo}
-                                alt="Preview"
-                                className="login__container__form__preview"
-                            />
-                        </div>
-                    )}
-
-
-                </div>
-
                 <button className="login__btn" type="submit">Update</button>
-
             </form>
-            {/* <div className="login__container__error">
-                <p>{error}</p>
-            </div> */}
             <div className="login__container__links">
                 <Link to="/">Cancel</Link>
             </div>

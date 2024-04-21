@@ -21,7 +21,7 @@ const tokenService = {
         if (new_data.pseudo) {
             data.pseudo = new_data.pseudo
         }
-        if (new_data.photo) {
+        if (new_data.photo !== undefined) {
             data.photo = new_data.photo
         }
         localStorage.setItem(USER_INFO, JSON.stringify(data));

@@ -1,25 +1,18 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import ServiceAPI from '../services/ServiceAPI';
-import ServiceImage from '../services/ServiceImage';
 import tokenService from '../services/TokenService';
-
-
+import PhotoContainer from '../components/PhotoContainer';
 
 const SignUp = () => {
     const navigate = useNavigate()
-
-    // State pour stocker les valeurs des champs du formulaire
+    const [error, setError] = useState("")
     const [formData, setFormData] = useState({
         pseudo: '',
         email: '',
-        password: ''
+        password: '',
     });
 
-    // State pour gérer les erreurs de login
-    const [error, setError] = useState("")
-
-    // Fonction pour gérer les changements dans les champs du formulaire
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData({
@@ -28,30 +21,14 @@ const SignUp = () => {
         });
     };
 
-    // Fonction pour gérer le changement de l'image
-    const handleImageChange = async (e) => {
-        const file = e.target.files[0];
-        const encodedfile = await ServiceImage.loadFile(file)
-        // console.log(encodedfile)
-        if (encodedfile) {
-            setFormData({
-                ...formData,
-                photo: encodedfile
-            });
-        }
-    }
-
-    // Fonction pour gérer la soumission du formulaire
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
             console.log(formData)
-            const token = await ServiceAPI.signup(formData); // Utilisez la fonction signup du service
+            const token = await ServiceAPI.signup(formData);
 
-            //Init erreur Login si besoin
             setError("")
 
-            // Ici, on pourrait se logger automatiquement et envoyer sur home
             console.log('Token JWT obtenu:', token);
             console.log('isAuthentified:', tokenService.isAuthentified());
             if (tokenService.isAuthentified()) {
@@ -62,6 +39,7 @@ const SignUp = () => {
             setError(error.message)
         }
     };
+
 
     return (
         <div className="login__container">
@@ -95,27 +73,10 @@ const SignUp = () => {
                     onChange={handleChange}
                     minLength={6}
                 />
-                <div className="login__input_photo_container">
-                    <p>Photo (Optionnel)</p>
-                    <input
-                        type="file"
-                        id="photo"
-                        name="photo"
-                        accept="image/*"
-                        onChange={handleImageChange}
 
-                    />
+                <p>Photo (Optionnel)</p>
+                <PhotoContainer formData={formData} setFormData={setFormData} />
 
-                    {formData.photo && (
-                        <div className="login__image__div">
-                            <img
-                                src={formData.photo}
-                                alt="Preview"
-                                className="login__container__form__preview"
-                            />
-                        </div>
-                    )}
-                </div>
 
                 <button className="login__btn" type="submit">SignUp</button>
             </form>

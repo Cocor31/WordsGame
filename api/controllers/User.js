@@ -108,7 +108,10 @@ exports.updateUser = async (req, res) => {
             let hash = await bcrypt.hash(password, parseInt("process.env.BCRYPT_SALT_ROUND"))
             userp.password = hash
         }
-        if (photo) { userp.photo = photo }
+
+        if (photo !== undefined) {
+            userp.photo = photo;
+        }
 
         // Mise à jour de l'utilisateur
         await User.update(userp, { where: { id: pid } })
