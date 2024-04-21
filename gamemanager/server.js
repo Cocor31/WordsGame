@@ -38,7 +38,7 @@ db.mongoose
     .then(() => {
         console.log('MongoDB Connexion OK')
         http.listen(SERVER_PORT, () => {
-            console.log(`Server listening on ${SERVER_PORT} test branch gamebdd`);
+            console.log(`Server listening on ${SERVER_PORT}`);
         });
     })
 
