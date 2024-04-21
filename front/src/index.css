@@ -348,7 +348,8 @@
     /* ajouter cette ligne */
 
     @media only screen and (max-width : 740px) {
-        max-height: 80px;
+        max-height: 70px;
+        padding: 5px;
     }
 }
 
