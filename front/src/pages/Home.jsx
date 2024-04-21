@@ -60,14 +60,14 @@ const Home = ({ setSocket }) => {
                     />
                 </div>
                 <div className='home__header__buttons'>
-                    <button onClick={handleProfil}>Edit Profil</button>
-                    <button onClick={handleLogout}>Logout</button>
+                    <button className='home__menu__btn' onClick={handleProfil}>Edit Profil</button>
+                    <button className='home__menu__btn' onClick={handleLogout}>Logout</button>
 
                 </div>
             </div>
 
             <h1>Welcome home</h1>
-            <button className='home__playBtn' onClick={handlePlay}>Play</button>
+            <button className='login__btn' onClick={handlePlay}>Play</button>
 
 
         </div>
