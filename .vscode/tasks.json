@@ -1,0 +1,84 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Start All",
+            "group": "build",
+            "dependsOn": [
+                "Api",
+                "Manager",
+                "Front"
+            ],
+            "icon": {
+                "id": "run-all",
+                "color": "terminal.ansiGreen"
+            }
+        },
+        {
+            "label": "DB-Api-Docker",
+            "type": "npm",
+            "script": "db:start",
+            "path": "api",
+            "icon": {
+                "id": "database",
+                "color": "terminal.ansiBlue"
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            }
+        },
+        {
+            "label": "Manager",
+            "type": "npm",
+            "script": "dev",
+            "path": "gamemanager",
+            "icon": {
+                "id": "game",
+                "color": "terminal.ansiYellow"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Api",
+            "type": "npm",
+            "script": "dev",
+            "path": "api",
+            "icon": {
+                "id": "lightbulb",
+                "color": "terminal.ansiRed"
+            },
+            "dependsOn": [
+                "DB-Api-Docker"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Front",
+            "type": "npm",
+            "script": "dev",
+            "path": "front",
+            "icon": {
+                "id": "browser",
+                "color": "terminal.ansiCyan"
+            },
+        },
+        {
+            "label": "Kill-Process",
+            "type": "shell",
+            "command": "npm --prefix ./api run kill-process && npm --prefix ./gamemanager run kill-process",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "icon": {
+                "id": "remove-close",
+                "color": "terminal.ansiRed"
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            }
+        },
+    ]
+}
