@@ -7,6 +7,7 @@ const VITE_API_PREFIX = import.meta.env.VITE_API_PREFIX || ":5000"
 
 // axios.defaults.baseURL = 'http://localhost:5000';
 axios.defaults.baseURL = 'http://' + VITE_SERVER_URL + VITE_API_PREFIX;
+console.log('API HOST', 'http://' + VITE_SERVER_URL + VITE_API_PREFIX)
 
 const login = async (formData) => {
     try {

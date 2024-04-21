@@ -7,6 +7,8 @@ const VITE_SERVER_URL = import.meta.env.VITE_SERVER_URL || "localhost"
 const VITE_SOCKET_PORT = import.meta.env.VITE_SOCKET_PORT || "5001"
 const SOCKET_URL = 'http://' + VITE_SERVER_URL + ':' + VITE_SOCKET_PORT
 
+console.log('SOCKET HOST', 'http://' + VITE_SERVER_URL + ':' + VITE_SOCKET_PORT)
+
 const connectSocket = () => {
     const socket = socketIO.connect(SOCKET_URL);
     return socket
