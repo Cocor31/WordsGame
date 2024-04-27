@@ -2,7 +2,8 @@ import axios from 'axios';
 import tokenService from './TokenService';
 
 
-const VITE_SERVER_URL = import.meta.env.VITE_SERVER_URL || "localhost"
+// const VITE_SERVER_URL = import.meta.env.VITE_SERVER_URL || "localhost" // <= Not Used because server IP changed after each restart. Front App and .env are freezed
+const VITE_SERVER_URL = window.location.hostname
 const VITE_API_PREFIX = import.meta.env.VITE_API_PREFIX || ":5000"
 
 // axios.defaults.baseURL = 'http://localhost:5000';
@@ -25,13 +26,18 @@ const login = async (formData) => {
         return token;
     } catch (error) {
         let error_message
-        if (error.response.status === 404) {
-            error_message = "Votre email est inconnu ou érroné !"
-        } else if (error.response.status === 401) {
-            error_message = "Votre mot de passe est incorrect. Veuillez le vérifier."
+        if (error.response && typeof error.response.status !== 'undefined') {
+            if (error.response.status === 404) {
+                error_message = "Votre email est inconnu ou érroné !";
+            } else if (error.response.status === 401) {
+                error_message = "Votre mot de passe est incorrect. Veuillez le vérifier.";
+            } else {
+                error_message = "Erreur lors de la connexion";
+            }
         } else {
-            error_message = "Erreur lors de la connexion"
+            error_message = "Erreur inattendue lors de la connexion";
         }
+
         throw new Error(error_message);
     }
 };
@@ -47,12 +53,17 @@ const signup = async (formData) => {
 
     } catch (error) {
         let error_message
-
-        if (error.response.status === 409) {
-            error_message = "Cet email est déjà associé à un utilisateur !"
-        } else {
-            error_message = "Erreur lors de l'inscription"
+        if (error.response && typeof error.response.status !== 'undefined') {
+            if (error.response.status === 409) {
+                error_message = "Cet email est déjà associé à un utilisateur !"
+            } else {
+                error_message = "Erreur lors de l'inscription"
+            }
         }
+        else {
+            error_message = "Erreur inattendue lors de l'inscription'";
+        }
+
         throw new Error(error_message);
     }
 };
