@@ -32,15 +32,23 @@ const socketIO = require('socket.io')(http, {
 
 console.log(">>>>>>>> db.url:", db.url)
 /*************************/
-/*** Start Server  */
-db.mongoose
-    .connect(db.url)
-    .then(() => {
-        console.log('MongoDB Connexion OK')
-        http.listen(SERVER_PORT, () => {
-            console.log(`Server listening on ${SERVER_PORT}`);
-        });
-    })
+/*** Start Server without Mongo  */
+
+http.listen(SERVER_PORT, () => {
+    console.log(`Server listening on ${SERVER_PORT}`);
+});
+
+
+/*************************/
+/*** Start Server with Mongo */
+// db.mongoose
+//     .connect(db.url)
+//     .then(() => {
+//         console.log('MongoDB Connexion OK')
+//         http.listen(SERVER_PORT, () => {
+//             console.log(`Server listening on ${SERVER_PORT}`);
+//         });
+//     })
 
 
 /*************************/
