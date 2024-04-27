@@ -38,7 +38,7 @@ services:
     image: cocor31/game-api:main
     container_name: service_api
     extra_hosts:
-      # for linux hosts since version 20.10
+      # for linux hosts since version 20.10 
       - host.docker.internal:host-gateway
     restart: always
     env_file: ./.env
