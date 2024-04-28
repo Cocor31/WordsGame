@@ -4,7 +4,7 @@ on:
     push:
         branches: 
             - main
-            - gamebdd
+            - dev
     pull_request:
         branches: ["main"]
 
@@ -50,7 +50,7 @@ jobs:
     
     deploy:
         needs: [test]
-        if: ${{ github.event_name == 'push' && (github.ref_name == 'main' || github.ref_name == 'gamebdd') }}      
+        if: ${{ github.event_name == 'push' && (github.ref_name == 'main' || github.ref_name == 'dev') }}      
         uses: ./.github/workflows/cd.yml
         secrets: inherit
         
