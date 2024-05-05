@@ -28,7 +28,7 @@ const user_router = require('./routes/User')
 const word_router = require('./routes/Word')
 
 /*** MAIN ROUTER */
-app.get(PREFIX + '/', (req, res) => res.send(`I'm online. All is OK ! `))
+app.get(PREFIX + '/', (req, res) => res.send(`I'm online. All is OK !`))
 
 app.use(PREFIX + '/', auth_router)
 app.use(PREFIX + '/users', user_router)

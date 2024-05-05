@@ -4,13 +4,16 @@ on:
     push:
         branches: 
             - main
-            - gamebdd
+            - dev
     pull_request:
         branches: ["main"]
 
 jobs:
-    test:
+    testApi:
         runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: api
 
         services:
             mariadb:
@@ -25,10 +28,15 @@ jobs:
                 options: --health-cmd="healthcheck.sh --connect --innodb_initialized" --health-interval=10s --health-timeout=5s --health-retries=3
 
         env:
-            DB_HOST: 127.0.0.1
-            DB_NAME: test
-            DB_USER: test
-            DB_PASS: test
+            MARIADB_HOST: 127.0.0.1
+            # DB_NAME: test
+            # DB_USER: test
+            # DB_PASS: test
+            MARIADB_PORT: 3306
+            MARIADB_DATABASE: test
+            # MARIADB_ROOT_PASSWORD: toor
+            MARIADB_USER: test
+            MARIADB_PASSWORD: test
 
         steps:
             - name: Checkout
@@ -44,13 +52,19 @@ jobs:
               with:
                 node-version: 18.x
 
-            - name: Init database
-              run: echo Test Done
+            - name: Install Dependencies
+              run: npm i
+
+            # - name: Init database
+            #   run: echo Test Done
+
+            - name: Run API Test
+              run: npm run test
               
     
     deploy:
-        needs: [test]
-        if: ${{ github.event_name == 'push' && (github.ref_name == 'main' || github.ref_name == 'gamebdd') }}      
+        needs: [testApi]
+        if: ${{ github.event_name == 'push' && (github.ref_name == 'main' || github.ref_name == 'dev') }}      
         uses: ./.github/workflows/cd.yml
         secrets: inherit
         

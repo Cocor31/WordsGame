@@ -37,7 +37,7 @@ exports.addWord = async (req, res) => {
 
     try {
         // On enlève les majuscules
-        req.body.name = req.body.name.toLowerCase()
+        req.body.name = req.body.name.trim().toLowerCase();
 
         // Vérification si le mot existe déjà
         const word = await Word.findOne({ where: { name: req.body.name }, raw: true })
@@ -61,7 +61,6 @@ exports.addWord = async (req, res) => {
 }
 
 exports.getWordHit = async (req, res) => {
-    console.log('API DATA: ', req.body)
     // Validation des données reçues
     if (!req.body.name) {
         return res.status(400).json({ message: 'Missing Data' })
@@ -110,13 +109,16 @@ exports.updateWord = async (req, res) => {
         // récupération des données
         let wordp = {}
         if (req.body.value) {
-            if (req.body.value) {
-                wordp = {
-                    value: req.body.value.toLowerCase(),
-                    isEvaluate: true
-                }
+            wordp = {
+                value: req.body.value,
+                isEvaluate: true
             }
         }
+
+        if (req.body.name) {
+            wordp.name = req.body.name.trim().toLowerCase();
+        }
+
         if (req.body.hasOwnProperty('isEvaluate')) {
             if (req.body.isEvaluate === 'false' || req.body.isEvaluate === false) {
                 wordp = {
@@ -124,13 +126,13 @@ exports.updateWord = async (req, res) => {
                     isEvaluate: false
                 }
             }
-            console.log(wordp)
         }
 
         // Mise à jour du mot
         await Word.update(wordp, { where: { id: pid } })
         return res.json({ message: 'Word Updated', data: { ...word, ...wordp } })
     } catch (err) {
+        console.log(err)
         return res.status(500).json({ message: 'Database Error', error: err })
     }
 }
@@ -148,7 +150,7 @@ exports.deleteWord = async (req, res) => {
         let count = await Word.destroy({ where: { id: pid } })
         // Test si résultat
         if (count === 0) {
-            return res.status(404).json({ message: `This Word does not exist !` })
+            return res.status(404).json({ message: `This word does not exist !` })
         }
         // Message confirmation Deletion
         return res.status(200).json({ message: `Word (id: ${pid} ) Successfully Deleted. ${count} row(s) deleted` })

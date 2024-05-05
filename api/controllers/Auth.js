@@ -17,7 +17,7 @@ exports.login = async (req, res) => {
     }
 
     try {
-        // Get admin
+        // Get user
         let user = await User.findOne({ where: { email: email } })
         // Test si résultat
         if (user === null) {
@@ -26,7 +26,7 @@ exports.login = async (req, res) => {
         // Password check  
         let test = await bcrypt.compare(password, user.password)
         if (!test) {
-            return res.status(401).json({ message: 'Wrong password' })
+            return res.status(401).json({ message: 'Wrong credentials' })
         }
 
         // JWT generation
