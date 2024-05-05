@@ -66,7 +66,7 @@ const Home = ({ setSocket }) => {
                 </div>
             </div>
 
-            <h1>Welcome home Test Dev</h1>
+            <h1>Welcome home</h1>
             <button className='login__btn' onClick={handlePlay}>Play</button>
 
 
