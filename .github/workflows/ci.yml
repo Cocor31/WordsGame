@@ -28,10 +28,15 @@ jobs:
                 options: --health-cmd="healthcheck.sh --connect --innodb_initialized" --health-interval=10s --health-timeout=5s --health-retries=3
 
         env:
-            DB_HOST: 127.0.0.1
-            DB_NAME: test
-            DB_USER: test
-            DB_PASS: test
+            MARIADB_HOST: 127.0.0.1
+            # DB_NAME: test
+            # DB_USER: test
+            # DB_PASS: test
+            MARIADB_PORT: 3306
+            MARIADB_DATABASE: test
+            # MARIADB_ROOT_PASSWORD: toor
+            MARIADB_USER: test
+            MARIADB_PASSWORD: test
 
         steps:
             - name: Checkout
