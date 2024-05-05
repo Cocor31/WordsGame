@@ -58,7 +58,7 @@ jobs:
               
     
     deploy:
-        needs: [test]
+        needs: [testApi]
         if: ${{ github.event_name == 'push' && (github.ref_name == 'main' || github.ref_name == 'dev') }}      
         uses: ./.github/workflows/cd.yml
         secrets: inherit
