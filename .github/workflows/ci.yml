@@ -9,8 +9,11 @@ on:
         branches: ["main"]
 
 jobs:
-    test:
+    testApi:
         runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: api
 
         services:
             mariadb:
@@ -50,7 +53,7 @@ jobs:
             # - name: Init database
             #   run: echo Test Done
 
-            - name: Run Main Test
+            - name: Run API Test
               run: npm run test
               
     
