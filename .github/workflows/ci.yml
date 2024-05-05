@@ -44,8 +44,14 @@ jobs:
               with:
                 node-version: 18.x
 
-            - name: Init database
-              run: echo Test Done
+            - name: Install Dependencies
+              run: npm i
+
+            # - name: Init database
+            #   run: echo Test Done
+
+            - name: Run Main Test
+              run: npm run test
               
     
     deploy:
