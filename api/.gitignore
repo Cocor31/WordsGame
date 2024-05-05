@@ -2,6 +2,7 @@ node_modules
 # .env
 mysql
 local_bdd
+test_bdd
 .scannerwork
 scripts/opt
 coverage/
