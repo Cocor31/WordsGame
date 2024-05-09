@@ -29,12 +29,14 @@ let sequelize = new Sequelize(
 const db = {}
 db.sequelize = sequelize
 db.User = require('./models/User')(sequelize)
+db.Role = require('./models/Role')(sequelize)
 db.Word = require('./models/Word')(sequelize)
 
 
 /*************************/
 /*** Mise en place des relations */
-
+db.User.belongsToMany(db.Role, { through: 'User_Role' })
+db.Role.belongsToMany(db.User, { through: 'User_Role' })
 
 /*************************/
 /*** Synchronisation des modèles */
