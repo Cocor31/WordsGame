@@ -47,7 +47,6 @@ exports.addWord = async (req, res) => {
 
         // S'il y a une valeur pour le mot on considère qu'il est évalué
         if (req.body.hasOwnProperty('value')) {
-            console.log(req.body.value)
             req.body.isEvaluate = true
         }
 
@@ -65,7 +64,7 @@ exports.getWordHit = async (req, res) => {
     if (!req.body.name) {
         return res.status(400).json({ message: 'Missing Data' })
     }
-    console.log('API DATA: ', req.body.name)
+    // console.log('API DATA: ', req.body.name)
     // On enlève les majuscules et espace
     const pname = req.body.name.trim().toLowerCase();
 
@@ -138,14 +137,9 @@ exports.updateWord = async (req, res) => {
 }
 
 exports.deleteWord = async (req, res) => {
-    let pid = parseInt(req.params.id)
-
-    // Vérification si le champ id est présent et cohérent
-    if (!pid) {
-        return res.status(400).json({ message: `Missing Parameter` })
-    }
-
     try {
+        let pid = parseInt(req.params.id)
+
         // Suppression
         let count = await Word.destroy({ where: { id: pid } })
         // Test si résultat

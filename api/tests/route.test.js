@@ -1,6 +1,14 @@
 const { agent } = require('./setup');
 const PREFIX = process.env.PREFIX || '';
+const db = require('../db.config');
 
+beforeAll(async () => {
+    await db.sequelize.sync({ alter: true })
+});
+
+afterAll(async () => {
+    await db.sequelize.close();
+});
 
 describe('GET /', () => {
     it('should return a 200 status code and a message indicating that the API is online', async () => {

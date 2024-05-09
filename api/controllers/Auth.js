@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken')
 
 const DB = require("../db.config")
 const User = DB.User
+const Role = DB.Role
 
 /**********************************/
 /*** Unit route for Auth resource */
@@ -18,7 +19,7 @@ exports.login = async (req, res) => {
 
     try {
         // Get user
-        let user = await User.findOne({ where: { email: email } })
+        let user = await User.findOne({ where: { email: email }, include: Role })
         // Test si résultat
         if (user === null) {
             return res.status(404).json({ message: `This user does not exist !` })
@@ -29,9 +30,12 @@ exports.login = async (req, res) => {
             return res.status(401).json({ message: 'Wrong credentials' })
         }
 
+        // Get roles
+        const roles = user.Roles.map((role) => role.name)
+
         // JWT generation
         const token = jwt.sign({
-            payload: { userId: user.id, userName: user.pseudo, roles: JSON.parse(user.roles).roles }
+            payload: { userId: user.id, userName: user.pseudo, roles: roles } // roles: JSON.parse(user.roles).roles
         }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_DURING })
 
         // User public data
