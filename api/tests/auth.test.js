@@ -9,24 +9,37 @@ const ROLES_LIST = JSON.parse(process.env.ROLES_LIST)
 describe('Auth', () => {
 
     let userEmail = 'testAuth2@example.com'
+    let testAuthUser
+    let roleUser
     beforeAll(async () => {
         // await db.User.destroy({ truncate: true });
         await db.sequelize.sync({ alter: true })
 
 
         // Créer un utilisateur pour les tests
-        await db.User.create({
+        testAuthUser = await db.User.create({
             email: userEmail,
             password: await bcrypt.hash('test', 10),
             pseudo: 'Test User',
             photo: null,
             roles: { "roles": [ROLES_LIST.user] }
         });
+
+        // Recupère ou créer les roles
+        [roleUser, created] = await db.Role.findOrCreate({
+            where: { name: ROLES_LIST.user }
+        });
+
+        // Ajout du role à l'utilisateur
+        await testAuthUser.addRole(roleUser);
     });
 
     afterAll(async () => {
         // Supprimer l'utilisateur créé pour les tests
         await db.User.destroy({ where: { email: userEmail } });
+
+        await db.Role.destroy({ where: { name: ROLES_LIST.user } });
+
         await db.sequelize.close();
     });
 
@@ -47,7 +60,7 @@ describe('Auth', () => {
             expect(decodedToken).toHaveProperty('payload.userId');
             expect(decodedToken).toHaveProperty('payload.userName', 'Test User');
             expect(decodedToken).toHaveProperty('payload.roles');
-            expect(decodedToken.payload.roles).toContain(ROLES_LIST.user);
+            expect(decodedToken.payload.roles).toContain(ROLES_LIST.user.toString());
         });
 
         it('should return a 400 status code for missing credentials', async () => {

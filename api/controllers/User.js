@@ -3,6 +3,7 @@
 const bcrypt = require('bcrypt')
 const DB = require('../db.config')
 const User = DB.User
+const Role = DB.Role
 const ROLES_LIST = JSON.parse(process.env.ROLES_LIST)
 
 
@@ -55,17 +56,21 @@ exports.getMe = async (req, res) => {
 }
 
 exports.addUser = async (req, res) => {
-    const { pseudo, email, password } = req.body
+    const { pseudo, email, password, roles } = req.body
 
     // Validation des données reçues
     if (!pseudo || !email || !password) {
         return res.status(400).json({ message: 'Missing Data' })
     }
 
+    // Créer une nouvelle transaction
+    const transaction = await DB.sequelize.transaction();
+
     try {
         // Vérification si l'utilisateur existe déjà
-        const user = await User.findOne({ where: { email: email }, raw: true })
-        if (user !== null) {
+        const existingUser = await User.findOne({ where: { email: email }, raw: true })
+        if (existingUser !== null) {
+            await transaction.rollback();
             return res.status(409).json({ message: `This email is already associated with a user !` })
         }
 
@@ -73,14 +78,26 @@ exports.addUser = async (req, res) => {
         let hash = await bcrypt.hash(password, parseInt(process.env.BCRYPT_SALT_ROUND))
         req.body.password = hash
 
-        // Ajout du role de base
-        req.body.roles = { "roles": [ROLES_LIST.user] }
+        // Création utilisateur
+        const newUser = await User.create(req.body, { transaction });
 
-        // Céation de l'utilisateur
-        let userc = await User.create(req.body)
-        return res.status(201).json({ message: 'User Created', data: userc })
+        // Recupère ou créer le role User
+        let [role, created] = await Role.findOrCreate({
+            where: { name: ROLES_LIST.user },
+            transaction,
+        });
+
+        // Ajout du role à l'utilisateur
+        await newUser.addRole(role, { transaction });
+
+        // Valider la transaction
+        await transaction.commit();
+
+        return res.status(201).json({ message: 'User Created', data: newUser })
 
     } catch (err) {
+        await transaction.rollback(); // Annuler la transaction en cas d'erreur
+
         if (err.name == 'SequelizeDatabaseError') {
             res.status(500).json({ message: 'Database Error', error: err })
         }
@@ -122,14 +139,9 @@ exports.updateUser = async (req, res) => {
 }
 
 exports.deleteUser = async (req, res) => {
-    let pid = parseInt(req.params.id)
-
-    // Vérification si le champ id est présent et cohérent
-    if (!pid) {
-        return res.status(400).json({ message: `Missing Parameter` })
-    }
-
     try {
+        let pid = parseInt(req.params.id)
+
         // Suppression
         let count = await User.destroy({ where: { id: pid } })
         // Test si résultat
@@ -146,20 +158,20 @@ exports.deleteUser = async (req, res) => {
 
 
 exports.getUserRoles = async (req, res) => {
-    let pid = parseInt(req.params.id)
-
     try {
+        let pid = parseInt(req.params.id)
+
         // Récupération de l'utilisateur et vérification
-        let user = await User.findOne({ where: { id: pid } })
+        let user = await User.findOne({ where: { id: pid }, include: Role })
         if (user === null) {
             return res.status(404).json({ message: 'This user does not exist !' })
         }
 
-        // Recupération des roles
+        //Recupération des roles
         return res.json({
             "data": {
                 "UserId": user.id,
-                "roles": JSON.parse(user.roles).roles
+                "roles": user.Roles.map((role) => role.name)
             }
 
         })
@@ -169,87 +181,67 @@ exports.getUserRoles = async (req, res) => {
 }
 
 exports.addUserRole = async (req, res) => {
-    let pid = parseInt(req.params.id)
-    let proles = parseInt(req.params.role)
-
-
     try {
+        let pid = parseInt(req.params.id);
+        let roleId = parseInt(req.params.role);
+
         // Récupération de l'utilisateur et vérification
-        let user = await User.findOne({ where: { id: pid } })
+        let user = await User.findOne({ where: { id: pid } });
         if (user === null) {
-            return res.status(404).json({ message: 'This user does not exist !' })
+            return res.status(404).json({ message: 'This user does not exist !' });
         }
 
-        // Recupération des roles
-        let roles = JSON.parse(user.roles).roles
-        console.log(roles)
-        if (!roles) {
-            roles = []
+        // Récupération du rôle et vérification
+        let role = await Role.findOne({ where: { id: roleId } });
+        if (role === null) {
+            return res.status(404).json({ message: 'This role does not exist !' });
         }
 
-        // Ajout du role si il n'existe pas
-        if (!roles.includes(proles)) {
-            roles.push(proles)
+        // Vérification si le rôle est déjà associé à l'utilisateur
+        let userRoles = await user.getRoles();
+        let roleIds = userRoles.map((userRole) => userRole.id);
+        if (roleIds.includes(role.id)) {
+            return res.status(400).json({ message: 'This role is already associated with the user !' });
         }
 
-        // Création d'un user partiel avec seulement des roles
-        let userp = {}
-        userp.roles = { "roles": roles }
+        // Ajout du rôle à l'utilisateur
+        await user.addRole(role);
 
-        // Mise à jour de l'utilisateur
-        await User.update(userp, { where: { id: pid } })
-
-        return res.json({ message: 'User roles Updated', data: { roles } })
+        return res.json({ message: 'User role Updated', data: { role: role.name } });
     } catch (err) {
-        return res.status(500).json({ message: 'Database Error', error: err })
+        return res.status(500).json({ message: 'Database Error', error: err });
     }
-}
+};
 
 exports.deleteUserRole = async (req, res) => {
-    let pid = parseInt(req.params.id)
-    let proles = parseInt(req.params.role)
-
-
     try {
+        let pid = parseInt(req.params.id);
+        let roleId = parseInt(req.params.role);
+
         // Récupération de l'utilisateur et vérification
-        let user = await User.findOne({ where: { id: pid } })
+        let user = await User.findOne({ where: { id: pid } });
         if (user === null) {
-            return res.status(404).json({ message: 'This user does not exist !' })
+            return res.status(404).json({ message: 'This user does not exist !' });
         }
 
-        // Recupération des roles
-        let roles = JSON.parse(user.roles).roles
-        console.log(roles)
-
-        // Ajout du role si il n'existe pas
-        if (roles && roles.includes(proles)) {
-            roles = roles.filter((role) => role !== proles)
-            // Création d'un user partiel avec seulement des roles
-            let userp = {}
-            userp.roles = { "roles": roles }
-
-            // Mise à jour de l'utilisateur
-            await User.update(userp, { where: { id: pid } })
-
-
+        // Récupération du rôle et vérification
+        let role = await Role.findOne({ where: { id: roleId } });
+        if (role === null) {
+            return res.status(404).json({ message: 'This role does not exist !' });
         }
 
-        return res.json({ message: 'User roles Updated', data: { roles } })
+        // Vérification si le rôle est déjà associé à l'utilisateur
+        let userRoles = await user.getRoles();
+        let roleIds = userRoles.map((userRole) => userRole.id);
+        if (!roleIds.includes(role.id)) {
+            return res.status(400).json({ message: 'This role is not associated with the user !' });
+        }
 
-        // // Ajout du role si il n'existe pas
-        // if (!roles.includes(proles)) {
-        //     roles.push(proles)
-        // }
+        // Suppression du rôle de l'utilisateur
+        await user.removeRole(role);
 
-        // // Création d'un user partiel avec seulement des roles
-        // let userp = {}
-        // userp.roles = { "roles": roles }
-
-        // // Mise à jour de l'utilisateur
-        // await User.update(userp, { where: { id: pid } })
-
-        // return res.json({ message: 'User roles Updated', data: { roles } })
+        return res.json({ message: 'User role Deleted', data: { role: role.name } });
     } catch (err) {
-        return res.status(500).json({ message: 'Database Error', error: err })
+        return res.status(500).json({ message: 'Database Error', error: err });
     }
-}
+};

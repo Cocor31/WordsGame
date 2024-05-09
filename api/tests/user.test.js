@@ -18,19 +18,25 @@ function generateToken(userId, roles) {
 }
 
 describe('User', () => {
-
     // Utilisateur pour les tests
-    let testUser;
-    let testUserRole;
-    let adminToken;
-    let modoToken;
-    let userToken;
     let userEmail = 'test@example.com'
     let userEmailRole = 'test.role@example.com'
 
+    let testUser;
+    let testUserRole;
+
+    let roleUser;
+    let roleModo
+    let roleAdmin
+
+    let adminToken;
+    let modoToken;
+    let userToken;
+
+
+
     beforeAll(async () => {
         await db.sequelize.sync({ alter: true })
-
 
         // Créer un utilisateur pour les tests
         testUser = await db.User.create({
@@ -50,19 +56,37 @@ describe('User', () => {
             roles: { "roles": [ROLES_LIST.user] },
         });
 
+        // Recupère ou créer les roles
+        [roleUser, created] = await db.Role.findOrCreate({
+            where: { name: ROLES_LIST.user }
+        });
+        [roleModo, created2] = await db.Role.findOrCreate({
+            where: { name: ROLES_LIST.modo }
+        });
+        [roleAdmin, created3] = await db.Role.findOrCreate({
+            where: { name: ROLES_LIST.admin }
+        });
+
+        // Ajout du role à l'utilisateur
+        await testUserRole.addRole(roleUser);
+
         // Générer un token admin
         adminToken = generateToken(testUser.id, [ROLES_LIST.admin]);
         // Générer un token modérateur
         modoToken = generateToken(testUser.id, [ROLES_LIST.modo]);
         // Générer un token user
         userToken = generateToken(testUser.id, [ROLES_LIST.user]);
-
     });
 
     afterAll(async () => {
-        // Supprimer l'utilisateur créé pour les tests
-        await db.User.destroy({ where: { email: userEmail } });
-        await db.User.destroy({ where: { email: userEmailRole } });
+        // Supprimer les utilisateurs créés pour les tests
+        await db.User.destroy({ where: { id: testUser.id } });
+        await db.User.destroy({ where: { id: testUserRole.id } });
+
+        // Supprimer les roles créés pour les tests
+        await db.Role.destroy({ where: { id: roleUser.id } });
+        await db.Role.destroy({ where: { id: roleModo.id } });
+        await db.Role.destroy({ where: { id: roleAdmin.id } });
 
         await db.sequelize.close();
     });
@@ -78,7 +102,6 @@ describe('User', () => {
             expect(response.body.data[0]).toHaveProperty('email');
             expect(response.body.data[0]).toHaveProperty('pseudo');
             expect(response.body.data[0]).toHaveProperty('photo', null);
-            expect(response.body.data[0]).toHaveProperty('roles');
 
         });
     });
@@ -96,8 +119,7 @@ describe('User', () => {
             expect(response.body.data).toHaveProperty('email', userEmail);
             expect(response.body.data).toHaveProperty('pseudo', 'Test User');
             expect(response.body.data).toHaveProperty('photo', null);
-            expect(response.body.data).toHaveProperty('roles');
-            expect(response.body.data.roles).toContain(JSON.stringify({ "roles": [ROLES_LIST.user] }));
+
         });
 
         it('should return a user for self', async () => {
@@ -112,8 +134,7 @@ describe('User', () => {
             expect(response.body.data).toHaveProperty('email', userEmail);
             expect(response.body.data).toHaveProperty('pseudo', 'Test User');
             expect(response.body.data).toHaveProperty('photo', null);
-            expect(response.body.data).toHaveProperty('roles');
-            expect(response.body.data.roles).toContain(JSON.stringify({ "roles": [ROLES_LIST.user] }));
+
         });
 
         it('should return a 403 status code for non-admin and non-self user', async () => {
@@ -188,9 +209,6 @@ describe('User', () => {
             expect(response.body).toHaveProperty('data.email', userEmailNew);
             expect(response.body).toHaveProperty('data.pseudo', 'New User');
             expect(response.body).toHaveProperty('data.photo', null);
-            expect(response.body).toHaveProperty('data.roles');
-            expect(response.body.data.roles).toEqual({ "roles": [ROLES_LIST.user] });
-            // expect(response.body.data.roles).toContain({ "roles": [ROLES_LIST.user] });
 
             // Vérifier que le mot de passe est bien haché dans la base de données
             const user = await db.User.findOne({ where: { email: userEmailNew } });
@@ -198,6 +216,17 @@ describe('User', () => {
 
             // Supprimer l'utilisateur créé pour le test
             await user.destroy();
+        });
+
+        it('should return a 400 status code when missing data', async () => {
+            const response = await agent
+                .put('/users')
+                .set('Authorization', `Bearer ${adminToken}`)
+                .send({
+                    pseudo: 'New User',
+                })
+
+            expect(response.statusCode).toBe(400);
         });
 
         it('should return a 403 status code for non-admin user', async () => {
@@ -209,9 +238,7 @@ describe('User', () => {
                     password: 'new',
                     pseudo: 'New User',
                     photo: null,
-                    roles: ['user'],
                 });
-
             expect(response.statusCode).toBe(403);
         });
 
@@ -224,10 +251,9 @@ describe('User', () => {
                     password: 'new',
                     pseudo: 'New User',
                     photo: null,
-                    roles: { "roles": [ROLES_LIST.user] },
-                })
-                .expect(409);
 
+                })
+            expect(response.statusCode).toBe(409);
             expect(response.body).toHaveProperty('message', `This email is already associated with a user !`);
         });
     });
@@ -252,8 +278,6 @@ describe('User', () => {
             expect(response.body).toHaveProperty('data.email', 'updated@example.com');
             expect(response.body).toHaveProperty('data.pseudo', 'Updated User');
             expect(response.body).toHaveProperty('data.photo', null);
-            expect(response.body).toHaveProperty('data.roles');
-
 
             // Vérifier que le mot de passe est bien haché dans la base de données
             const updatedUser = await db.User.findOne({ where: { email: 'updated@example.com' } });
@@ -277,7 +301,6 @@ describe('User', () => {
             expect(response.body).toHaveProperty('data.email', userEmail);
             expect(response.body).toHaveProperty('data.pseudo', 'Updated User');
             expect(response.body).toHaveProperty('data.photo', null);
-            expect(response.body).toHaveProperty('data.roles');
         });
 
         it('should return a 403 status code for non-admin and non-self user', async () => {
@@ -384,7 +407,7 @@ describe('User', () => {
             expect(response.statusCode).toBe(200);
             expect(response.body.data).toHaveProperty('UserId', user.id);
             expect(response.body.data).toHaveProperty('roles');
-            expect(response.body.data.roles).toEqual([ROLES_LIST.user]);
+            expect(response.body.data.roles).toEqual([ROLES_LIST.user.toString()]);
         });
 
         it('should return a 403 status code for non-admin user', async () => {
@@ -407,25 +430,34 @@ describe('User', () => {
         });
     });
 
-    describe('PUT /users/:id/roles/:role', () => {
+    describe('POST /users/:id/roles/:role', () => {
         it('should add a role to a user for admin', async () => {
             const user = await db.User.findOne({ where: { email: userEmailRole } });
 
             const response = await agent
-                .put(`/users/${user.id}/roles/${ROLES_LIST.modo}`)
+                .post(`/users/${user.id}/roles/${roleModo.id}`)
                 .set('Authorization', `Bearer ${adminToken}`)
                 .expect(200);
 
-            expect(response.body).toHaveProperty('message', 'User roles Updated');
-            expect(response.body).toHaveProperty('data.roles');
-            expect(response.body.data.roles).toEqual([ROLES_LIST.user, ROLES_LIST.modo]);
+            expect(response.body).toHaveProperty('message', 'User role Updated');
+            expect(response.body).toHaveProperty('data.role');
+            expect(response.body.data.role).toEqual(ROLES_LIST.modo.toString());
         });
 
-        it('should return a 403 status code for non-admin user', async () => {
+        it('should return a 400 status code for role already allocated to the user', async () => {
             const user = await db.User.findOne({ where: { email: userEmailRole } });
 
             const response = await agent
-                .put(`/users/${user.id}/roles/${ROLES_LIST.modo}`)
+                .post(`/users/${user.id}/roles/${roleUser.id}`)
+                .set('Authorization', `Bearer ${adminToken}`)
+
+            expect(response.statusCode).toBe(400);
+            expect(response.body).toHaveProperty('message', 'This role is already associated with the user !');
+        });
+
+        it('should return a 403 status code for non-admin user', async () => {
+            const response = await agent
+                .post(`/users/${testUserRole.id}/roles/${roleAdmin.id}`)
                 .set('Authorization', `Bearer ${userToken}`);
 
             expect(response.statusCode).toBe(403);
@@ -433,39 +465,49 @@ describe('User', () => {
 
         it('should return a 404 status code for a non-existent user', async () => {
             const response = await agent
-                .put('/users/9999999999/roles/${ROLES_LIST.modo}')
+                .post(`/users/99999999/roles/${roleUser.id}`)
                 .set('Authorization', `Bearer ${adminToken}`);
 
             expect(response.statusCode).toBe(404);
             expect(response.body).toHaveProperty('message', 'This user does not exist !');
+        });
+
+        it('should return a 404 status code for a non-existent role', async () => {
+            const response = await agent
+                .post(`/users/${testUserRole.id}/roles/99999999`)
+                .set('Authorization', `Bearer ${adminToken}`);
+
+            expect(response.statusCode).toBe(404);
+            expect(response.body).toHaveProperty('message', 'This role does not exist !');
         });
     });
 
     describe('DELETE /users/:id/roles/:role', () => {
         it('should delete a role from a user for admin', async () => {
-            const user = await db.User.findOne({ where: { email: userEmailRole } });
-
-            // Add a role to the user first
-            await agent
-                .put(`/users/${user.id}/roles/${ROLES_LIST.modo}`)
-                .set('Authorization', `Bearer ${adminToken}`)
-                .expect(200);
 
             const response = await agent
-                .delete(`/users/${user.id}/roles/${ROLES_LIST.modo}`)
+                .delete(`/users/${testUserRole.id}/roles/${roleModo.id}`)
                 .set('Authorization', `Bearer ${adminToken}`)
-                .expect(200);
 
-            expect(response.body).toHaveProperty('message', 'User roles Updated');
-            expect(response.body).toHaveProperty('data.roles');
-            expect(response.body.data.roles).toEqual([ROLES_LIST.user]);
+            expect(response.statusCode).toBe(200);
+            expect(response.body).toHaveProperty('message', 'User role Deleted');
+            expect(response.body).toHaveProperty('data.role');
+            expect(response.body.data.role).toEqual(ROLES_LIST.modo.toString());
         });
 
-        it('should return a 403 status code for non-admin user', async () => {
-            const user = await db.User.findOne({ where: { email: userEmailRole } });
-
+        it('should return a 400 status code for role not allocated to the user', async () => {
             const response = await agent
-                .delete(`/users/${user.id}/roles/${ROLES_LIST.modo}`)
+                .delete(`/users/${testUserRole.id}/roles/${roleAdmin.id}`)
+                .set('Authorization', `Bearer ${adminToken}`)
+
+            expect(response.statusCode).toBe(400);
+            expect(response.body).toHaveProperty('message', 'This role is not associated with the user !');
+        });
+
+
+        it('should return a 403 status code for non-admin user', async () => {
+            const response = await agent
+                .delete(`/users/${testUserRole.id}/roles/${roleModo.id}`)
                 .set('Authorization', `Bearer ${userToken}`);
 
             expect(response.statusCode).toBe(403);
@@ -473,11 +515,20 @@ describe('User', () => {
 
         it('should return a 404 status code for a non-existent user', async () => {
             const response = await agent
-                .delete('/users/9999999999/roles/${ROLES_LIST.modo}')
+                .delete(`/users/9999999999/roles/${roleModo.id}`)
                 .set('Authorization', `Bearer ${adminToken}`);
 
             expect(response.statusCode).toBe(404);
             expect(response.body).toHaveProperty('message', 'This user does not exist !');
+        });
+
+        it('should return a 404 status code for a non-existent role', async () => {
+            const response = await agent
+                .delete(`/users/${testUserRole.id}/roles/99999999`)
+                .set('Authorization', `Bearer ${adminToken}`);
+
+            expect(response.statusCode).toBe(404);
+            expect(response.body).toHaveProperty('message', 'This role does not exist !');
         });
     });
 });

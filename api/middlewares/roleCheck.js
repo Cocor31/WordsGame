@@ -1,11 +1,17 @@
 const roleCheck = (...authRoles) => {
+
+    // Convertir les éléments de authRoles en chaînes de caractères
+    const authRolesStrings = authRoles.map(role => role.toString());
+
     return (req, res, next) => {
 
         if (!req?.roles) {
             return res.sendStatus(403)
         }
-
-        const userRolesChecks = req.roles.map(role => authRoles.includes(role))
+        // console.log("roles user:", req.roles)
+        // console.log("roles requis:", authRolesStrings)
+        const userRolesChecks = req.roles.map(role => authRolesStrings.includes(role.toString()))
+        // console.log("userRolesChecks :", userRolesChecks)
         const isAutorized = userRolesChecks.find(val => val === true)
 
         if (!isAutorized) {

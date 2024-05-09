@@ -31,6 +31,6 @@ router.patch('/:id([0-9]+)', jwtCheck, roleCheck(ROLES_LIST.modo, ROLES_LIST.adm
 router.delete('/:id([0-9]+)', jwtCheck, roleCheck(ROLES_LIST.admin), userCtrl.deleteUser)
 
 router.get('/:id([0-9]+)/roles', jwtCheck, roleCheck(ROLES_LIST.modo, ROLES_LIST.admin), userCtrl.getUserRoles)
-router.put('/:id([0-9]+)/roles/:role', jwtCheck, roleCheck(ROLES_LIST.admin), userCtrl.addUserRole)
-router.delete('/:id([0-9]+)/roles/:role', jwtCheck, roleCheck(ROLES_LIST.admin), userCtrl.deleteUserRole)
+router.post('/:id([0-9]+)/roles/:role([0-9]+)', jwtCheck, roleCheck(ROLES_LIST.admin), userCtrl.addUserRole)
+router.delete('/:id([0-9]+)/roles/:role([0-9]+)', jwtCheck, roleCheck(ROLES_LIST.admin), userCtrl.deleteUserRole)
 module.exports = router
