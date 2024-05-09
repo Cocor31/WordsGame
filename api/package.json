@@ -7,7 +7,7 @@
     "start": "node -r dotenv/config server.js",
     "dev": "nodemon --exec \"npm run kill-process && node -r dotenv/config server.js\"",
     "dev-old": "npm run kill-process && nodemon -r dotenv/config server.js",
-    "test": "jest --coverage",
+    "test": "jest --coverage --detectOpenHandles",
     "pretest:local": "docker-compose -f tests/docker/docker-compose-bdd-test.yml up -d",
     "test:local": "npm run test",
     "posttest:local": "docker-compose -f tests/docker/docker-compose-bdd-test.yml down",
