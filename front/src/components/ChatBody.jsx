@@ -1,30 +1,19 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import ServiceSocket from '../services/ServiceSocket';
-import tokenService from '../services/TokenService';
 
-const ChatBody = ({ socket, messages, typingStatus, lastMessageRef }) => {
-    const navigate = useNavigate();
-    const userId = tokenService.getUserId()
-
-    const handleLeaveChat = () => {
-        ServiceSocket.deleteUser(socket)
-        navigate('/');
-        window.location.reload();
-    };
+const ChatBody = ({ messages, typingStatus, lastMessageRef, onLeaveChat, activeUserId }) => {
 
     return (
         <>
             <header className="chat__mainHeader">
                 <p>Hit your opponents with words</p>
-                <button className="leaveChat__btn" onClick={handleLeaveChat}>
+                <button className="leaveChat__btn" onClick={onLeaveChat}>
                     LEAVE GAME
                 </button>
             </header>
 
             <div className="message__container">
                 {messages.map((message) =>
-                    message.userId === userId ? (
+                    message.userId === activeUserId ? (
                         <div className="message__chats" key={message.id}>
                             <p className="sender__name">You</p>
                             <div className="message__sender">

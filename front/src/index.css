@@ -7,6 +7,8 @@
     font-family: 'Poppins', sans-serif;
     --bg-chat-color: #f9f5eb;
     --bg-home-color: #f9f5eb;
+    --bg-chat-msg-container-color: #fff;
+    --bg-chat-popup-winner-color: #f9f5eb;
     --btn-green-color: #27ae60;
     --btn-green-light-color: #2ecc71;
     --btn-standar-color: #546c94;
@@ -15,7 +17,6 @@
     --btn-leavechat-light-color: #d1512d;
     --msg-recive-color: #f5ccc2;
     --msg-send-color: rgb(194, 243, 194);
-
 }
 
 .login__container {
@@ -313,7 +314,6 @@
     @media only screen and (max-width : 740px) {
         height: 10%;
         padding: 5px;
-        /* Ajouter cette ligne */
     }
 }
 
@@ -348,7 +348,7 @@
 .message__container {
     width: 100%;
     height: 80vh;
-    background-color: #fff;
+    background-color: var(--bg-chat-msg-container-color);
     padding: 20px;
     overflow-y: scroll;
 
@@ -371,7 +371,6 @@
         height: 10%;
         min-height: 50px;
         padding: 5px;
-        /* Modifier cette ligne */
     }
 }
 
@@ -432,6 +431,10 @@
     padding: 10px;
     border-radius: 10px;
     font-size: 15px;
+
+    @media only screen and (max-width : 740px) {
+        max-width: 250px;
+    }
 }
 
 .message__sender {
@@ -441,6 +444,10 @@
     border-radius: 10px;
     margin-left: auto;
     font-size: 15px;
+
+    @media only screen and (max-width : 740px) {
+        max-width: 250px;
+    }
 }
 
 .message__chats>p {
@@ -468,9 +475,6 @@
     padding: 10px;
     box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
     transition: filter 0.3s ease;
-
-
-    /* ajouter cette ligne */
 
     @media only screen and (max-width : 740px) {
         max-height: 60px;
@@ -533,4 +537,31 @@
     font-weight: bold;
     color: #444444;
 
+}
+
+.chat__popup__overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.chat__popup__winner {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--bg-chat-popup-winner-color);
+    padding: 20px;
+    border-radius: 10px;
+    align-items: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+
+    & p {
+        font-size: 20px;
+    }
 }

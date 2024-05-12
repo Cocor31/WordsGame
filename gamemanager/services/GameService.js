@@ -54,6 +54,38 @@ const hitOpponentsUsers = (users, UserIdSender, hitWord) => {
 
 }
 
+const checkIfGameFinished = (users) => {
+    let countNonZeroScoreUsers = 0;
+    let winner = null;
+
+    // Parcourir les utilisateurs pour compter ceux qui ont un score différent de zéro
+    users.forEach(user => {
+        if (user.score !== 0) {
+            countNonZeroScoreUsers++;
+            winner = user; // Enregistrer le gagnant potentiel
+        }
+    });
+
+    // Si un seul joueur a un score différent de zéro, la partie est terminée
+    const isGameFinished = countNonZeroScoreUsers === 1 && users.length > 1;
+
+    return { isGameFinished, winner };
+}
+
+const saveGameResult = (users, winner) => {
+
+    users.map(async (user) => {
+        const win = user.userId === winner.userId;
+        // console.log("userId:", user.userId, "score:", user.score, "win:", win)
+        try {
+            await ServiceAPI.RequestUpdateUserScore(user.userId, user.score, win)
+        } catch (error) {
+            console.log(`>>>>> Error update score in API for UserID: ${user.userId}`)
+
+        }
+    })
+}
+
 const addUserToGroup = (users, data, socketIdUser) => {
 
     const existingUser = users.find(user => user.userId === data.userId);
@@ -120,5 +152,7 @@ GameService.deleteUserFromGroup = deleteUserFromGroup
 GameService.deleteUserFromGroupWithsocket = deleteUserFromGroupWithsocket
 GameService.logUsers = logUsers
 GameService.logUsersScore = logUsersScore
+GameService.checkIfGameFinished = checkIfGameFinished
+GameService.saveGameResult = saveGameResult
 
 module.exports = GameService

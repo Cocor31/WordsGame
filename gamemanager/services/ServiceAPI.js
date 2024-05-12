@@ -25,8 +25,21 @@ const RequestWordHit = async (word) => {
     }
 }
 
+const RequestUpdateUserScore = async (userId, score, win) => {
+    try {
+        const response = await axios.patch(`/scores/${userId}`, { score: score, win: win });
+        // console.log(response.data);
+        // console.log("response API : ", response.data)
+        return response.data.data
+    } catch (error) {
+        // console.log(error)
+        error_message = `Erreur lors de l'update score du joueur Id ${userId} dans l'API`
+        throw new Error(error_message);
+    }
+}
+
 
 
 module.exports = {
-    RequestWordHit,
+    RequestWordHit, RequestUpdateUserScore
 };
