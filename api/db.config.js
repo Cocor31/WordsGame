@@ -31,12 +31,20 @@ db.sequelize = sequelize
 db.User = require('./models/User')(sequelize)
 db.Role = require('./models/Role')(sequelize)
 db.Word = require('./models/Word')(sequelize)
+db.Score = require('./models/Score')(sequelize)
 
 
 /*************************/
 /*** Mise en place des relations */
 db.User.belongsToMany(db.Role, { through: 'User_Role' })
 db.Role.belongsToMany(db.User, { through: 'User_Role' })
+db.User.hasOne(db.Score, {
+    onDelete: 'CASCADE',
+    foreignKey: {
+        allowNull: false,
+        unique: true
+    }
+});
 
 /*************************/
 /*** Synchronisation des modèles */

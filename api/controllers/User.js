@@ -4,6 +4,7 @@ const bcrypt = require('bcrypt')
 const DB = require('../db.config')
 const User = DB.User
 const Role = DB.Role
+const Score = DB.Score
 const ROLES_LIST = JSON.parse(process.env.ROLES_LIST)
 
 
@@ -89,6 +90,9 @@ exports.addUser = async (req, res) => {
 
         // Ajout du role à l'utilisateur
         await newUser.addRole(role, { transaction });
+
+        // initialisation du score
+        await Score.create({ UserId: newUser.id }, { transaction })
 
         // Valider la transaction
         await transaction.commit();

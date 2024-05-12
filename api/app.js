@@ -23,10 +23,10 @@ app.use(reqLogger);
 
 // /*** IMPORT ROUTER */
 const auth_router = require('./routes/Auth')
-// const user_router = require('./routes/User')
 const user_router = require('./routes/User')
 const word_router = require('./routes/Word')
 const role_router = require('./routes/Role')
+const score_router = require('./routes/Score')
 
 /*** MAIN ROUTER */
 app.get(PREFIX + '/', (req, res) => res.send(`I'm online. All is OK !`))
@@ -35,6 +35,7 @@ app.use(PREFIX + '/', auth_router)
 app.use(PREFIX + '/users', user_router)
 app.use(PREFIX + '/words', word_router)
 app.use(PREFIX + '/roles', role_router)
+app.use(PREFIX + '/scores', score_router)
 
 app.all('*', (req, res) => res.status(501).send('What the hell are you doing !?! req_url:"' + req.url + '"'))
 
