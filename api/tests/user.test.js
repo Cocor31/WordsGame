@@ -17,6 +17,31 @@ function generateToken(userId, roles) {
     return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
 }
 
+// Fonction pour générer un token non-valide
+function generateWrongToken(userId, roles) {
+    const payload = {
+        payload: {
+            userId: userId,
+            userName: 'Test User',
+            roles: roles
+        }
+
+    };
+    return jwt.sign(payload, "un faux secret", { expiresIn: '1h' });
+}
+
+// Fonction pour générer un token non-valide
+function generateTokenWithoutRoles(userId, roles) {
+    const payload = {
+        payload: {
+            userId: userId,
+            userName: 'Test User',
+        }
+
+    };
+    return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
+}
+
 describe('User', () => {
     // Utilisateur pour les tests
     let userEmail = 'test@example.com'
@@ -32,6 +57,8 @@ describe('User', () => {
     let adminToken;
     let modoToken;
     let userToken;
+    let wrongToken;
+    let withoutRolesToken;
 
 
 
@@ -76,6 +103,10 @@ describe('User', () => {
         modoToken = generateToken(testUser.id, [ROLES_LIST.modo]);
         // Générer un token user
         userToken = generateToken(testUser.id, [ROLES_LIST.user]);
+        // Générer un mauvais token
+        wrongToken = generateWrongToken(testUser.id, [ROLES_LIST.user]);
+        // Générer un token valide mais sans roles
+        withoutRolesToken = generateTokenWithoutRoles(testUser.id, [ROLES_LIST.user]);
     });
 
     afterAll(async () => {
@@ -227,6 +258,33 @@ describe('User', () => {
                 })
 
             expect(response.statusCode).toBe(400);
+        });
+
+        it('should return a 401 status code for wrong token', async () => {
+            const response = await agent
+                .put('/users')
+                .set('Authorization', `Bearer ${wrongToken}`)
+                .send({
+                    email: 'new2@example.com',
+                    password: 'new',
+                    pseudo: 'New User',
+                    photo: null,
+                });
+            expect(response.statusCode).toBe(401);
+            expect(response.body).toHaveProperty('message', `Bad token`);
+        });
+
+        it('should return a 403 status code for token without roles', async () => {
+            const response = await agent
+                .put('/users')
+                .set('Authorization', `Bearer ${withoutRolesToken}`)
+                .send({
+                    email: 'new2@example.com',
+                    password: 'new',
+                    pseudo: 'New User',
+                    photo: null,
+                });
+            expect(response.statusCode).toBe(403);
         });
 
         it('should return a 403 status code for non-admin user', async () => {
