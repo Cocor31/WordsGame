@@ -72,8 +72,10 @@ const tokenService = {
         const token = tokenService.getToken();
         if (!token) return true;
         const decoded = jwtDecode(token);
-        const currentTime = Date.now() / 3000;
-        return decoded.exp < currentTime;
+        const expTimeWithOffset = new Date(decoded.exp * 1000).getTime() + (2 * 60 * 60 * 1000);
+        const currentTime = Date.now();
+        // console.log("currentTime", currentTime, "expTimeWithOffset", expTimeWithOffset)
+        return expTimeWithOffset < currentTime;
     },
 
     // Déconnecter l'utilisateur
