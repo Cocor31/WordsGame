@@ -6,9 +6,10 @@ const ChatFooter = ({ socket, footerBloqued }) => {
 
     const handleSendMessage = (e) => {
         e.preventDefault();
-
-        ServiceSocket.sendMessage(socket, message)
-        setMessage('');
+        if (message.length > 0) {
+            ServiceSocket.sendMessage(socket, message)
+            setMessage('')
+        }
         ServiceSocket.resetTyping(socket)
     };
 
