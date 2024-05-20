@@ -153,6 +153,21 @@ describe('User', () => {
 
         });
 
+        it('should return a user for modo', async () => {
+            const user = await db.User.findOne({ where: { email: userEmail } });
+
+            const response = await agent
+                .get(`/users/${user.id}`)
+                .set('Authorization', `Bearer ${modoToken}`);
+
+            expect(response.statusCode).toBe(200);
+            expect(response.body.data).toHaveProperty('id', user.id);
+            expect(response.body.data).toHaveProperty('email', userEmail);
+            expect(response.body.data).toHaveProperty('pseudo', 'Test User');
+            expect(response.body.data).toHaveProperty('photo', null);
+
+        });
+
         it('should return a user for self', async () => {
             const user = await db.User.findOne({ where: { email: userEmail } });
 
@@ -197,6 +212,25 @@ describe('User', () => {
             expect(response.statusCode).toBe(404);
             expect(response.body).toHaveProperty('message', 'This user does not exist !');
         });
+
+        // it('should return a 500 status code for a database error', async () => {
+        //     // Simuler une erreur de base de données en remplaçant la méthode findOne de User
+        //     const originalFindOne = db.User.findOne;
+        //     db.User.findOne = async () => {
+        //         throw new Error('Database error');
+        //     };
+
+        //     const response = await agent
+        //         .get(`/users/${testUser.id}`)
+        //         .set('Authorization', `Bearer ${adminToken}`);
+
+        //     expect(response.statusCode).toBe(500);
+        //     expect(response.body).toHaveProperty('message', 'Database Error');
+        //     expect(response.body).toHaveProperty('error');
+
+        //     // Rétablir la méthode findOne d'origine
+        //     db.User.findOne = originalFindOne;
+        // });
     });
 
     describe('GET /users/me', () => {
