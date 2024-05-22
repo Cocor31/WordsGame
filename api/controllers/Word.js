@@ -60,13 +60,21 @@ exports.addWord = async (req, res) => {
 }
 
 exports.getWordHit = async (req, res) => {
+
+    function enleverAccents(str) {
+        return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    }
+
     // Validation des données reçues
     if (!req.body.name) {
         return res.status(400).json({ message: 'Missing Data' })
     }
     // console.log('API DATA: ', req.body.name)
     // On enlève les majuscules et espace
-    const pname = req.body.name.trim().toLowerCase();
+    let pname = req.body.name.trim().toLowerCase();
+
+    // On enlève les accents
+    pname = enleverAccents(pname);
 
     // Vérifier s'il y a un seul mot
     const words = pname.split(/\s+/); // Séparer la chaîne en mots en utilisant les espaces comme délimiteur
