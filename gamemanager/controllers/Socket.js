@@ -38,6 +38,7 @@ const receiveNewUser = async (socket, socketIO, data) => {
 
 const receiveDeleteUser = async (socketIO, data) => {
     users = await GameService.deleteUserFromGroup(users, data.userId);
+    if (users.length === 0) { messages = [] }
     socketIO.emit('newUserResponse', users);
 }
 
@@ -45,6 +46,7 @@ const receiveDisconnect = async (socket, socketIO) => {
     console.log('❌: A user disconnected');
     const socketIdUser = socket.id;
     users = await GameService.deleteUserFromGroupWithsocket(users, socketIdUser);
+    if (users.length === 0) { messages = [] }
     socketIO.emit('newUserResponse', users);
 }
 
