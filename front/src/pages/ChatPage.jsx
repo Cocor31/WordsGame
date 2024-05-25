@@ -45,10 +45,20 @@ const ChatPage = ({ socket }) => {
         socket.on('messageResponse', (data) => setMessages(data));
         socket.on('newUserResponse', (data) => {
             if (!gameFinishedRef.current) {
-                setUsers(data)
+                // Trier les utilisateurs pour que l'utilisateur actif soit en premier
+                const currentUserId = tokenService.getUserId()
+                const sortedUsers = [...data].sort((a, b) => (a.userId === currentUserId ? -1 : b.userId === currentUserId ? 1 : 0));
+                // Set Users
+                setUsers(sortedUsers)
             }
         });
-        socket.on('updateUsersScores', (data) => setUsers(data));
+        socket.on('updateUsersScores', (data) => {
+            // Trier les utilisateurs pour que l'utilisateur actif soit en premier
+            const currentUserId = tokenService.getUserId()
+            const sortedUsers = [...data].sort((a, b) => (a.userId === currentUserId ? -1 : b.userId === currentUserId ? 1 : 0));
+            // Set Users
+            setUsers(sortedUsers)
+        });
         socket.on('gameFinished', (winner) => {
             setFooterBloqued(true);
             setWinner(winner);
